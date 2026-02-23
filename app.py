@@ -4,18 +4,17 @@ from datetime import datetime, date
 import uuid
 
 st.set_page_config(
-page_title=“RxHandoff | Pharmacy Shift Dashboard”,
-page_icon=“💊”,
-layout=“wide”,
-initial_sidebar_state=“expanded”,
+    page_title="RxHandoff | Pharmacy Shift Dashboard",
+    page_icon="💊",
+    layout="wide",
+    initial_sidebar_state="expanded",
 )
 
-# ── Inject custom CSS ──────────────────────────────────────────────────────────
+# — Inject custom CSS ————————————————————————————————————————
 
-st.markdown(”””
-
+st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,500;0,700;1,300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,400&display=swap');
 
 html, body, [class*="css"] {
     font-family: 'IBM Plex Sans', sans-serif;
@@ -23,612 +22,393 @@ html, body, [class*="css"] {
 h1, h2, h3, h4 {
     font-family: 'IBM Plex Mono', monospace !important;
 }
-
-/* Sidebar */
-section[data-testid="stSidebar"] {
-    background: #0a0f1a !important;
-    border-right: 1px solid #1e2d45;
+.stApp {
+    background-color: #0d1117;
+    color: #e6edf3;
 }
-section[data-testid="stSidebar"] * {
-    color: #a8c4e0 !important;
+.block-container {
+    padding-top: 1.5rem;
 }
-section[data-testid="stSidebar"] .stRadio label {
-    color: #a8c4e0 !important;
-    font-family: 'IBM Plex Mono', monospace !important;
-    font-size: 0.85rem;
+div[data-testid="stSidebar"] {
+    background-color: #161b22;
+    border-right: 1px solid #30363d;
 }
-
-/* Main background */
-.main { background: #050b14 !important; }
-.block-container { 
-    padding-top: 1.5rem !important;
-    background: #050b14;
-}
-
-/* Cards */
 .rx-card {
-    background: #0d1b2a;
-    border: 1px solid #1e2d45;
-    border-radius: 4px;
-    padding: 1rem 1.25rem;
-    margin-bottom: 0.75rem;
-    color: #c8dff0;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
 }
 .rx-card.urgent {
-    border-left: 3px solid #ff4d4d;
+    border-left: 4px solid #f85149;
 }
-.rx-card.warning {
-    border-left: 3px solid #ffb020;
+.rx-card.watch {
+    border-left: 4px solid #d29922;
 }
 .rx-card.stable {
-    border-left: 3px solid #00c47d;
+    border-left: 4px solid #3fb950;
 }
-.rx-card.info {
-    border-left: 3px solid #2d8cf0;
-}
-
-/* Tags */
 .tag {
     display: inline-block;
-    padding: 2px 8px;
-    border-radius: 2px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    font-weight: 600;
-    margin-right: 4px;
-    margin-bottom: 2px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-.tag-red    { background: rgba(255,77,77,0.15);  color: #ff4d4d; border: 1px solid #ff4d4d40; }
-.tag-amber  { background: rgba(255,176,32,0.15); color: #ffb020; border: 1px solid #ffb02040; }
-.tag-green  { background: rgba(0,196,125,0.15);  color: #00c47d; border: 1px solid #00c47d40; }
-.tag-blue   { background: rgba(45,140,240,0.15); color: #2d8cf0; border: 1px solid #2d8cf040; }
-.tag-gray   { background: rgba(100,120,140,0.15);color: #6a8fad; border: 1px solid #6a8fad40; }
-
-/* Header strip */
-.shift-header {
-    background: #0d1b2a;
-    border: 1px solid #1e2d45;
+    background: #21262d;
+    border: 1px solid #30363d;
     border-radius: 4px;
-    padding: 1rem 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1.5rem;
-}
-.shift-title {
+    padding: 2px 8px;
+    font-size: 0.72rem;
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 1.3rem;
-    font-weight: 600;
-    color: #e8f4ff;
-    margin: 0;
+    margin-right: 4px;
+    color: #8b949e;
 }
-.shift-meta {
+.shift-header {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.75rem;
-    color: #4a7fa0;
-}
-
-/* Metric tiles */
-.metric-tile {
-    background: #0d1b2a;
-    border: 1px solid #1e2d45;
-    border-radius: 4px;
-    padding: 1rem;
-    text-align: center;
-}
-.metric-number {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 2rem;
-    font-weight: 600;
-    color: #e8f4ff;
-    line-height: 1;
-}
-.metric-label {
-    font-size: 0.72rem;
-    color: #4a7fa0;
-    text-transform: uppercase;
+    color: #8b949e;
     letter-spacing: 0.08em;
-    margin-top: 4px;
-    font-family: 'IBM Plex Mono', monospace;
-}
-.metric-sub {
-    font-size: 0.7rem;
-    color: #ff4d4d;
-    font-family: 'IBM Plex Mono', monospace;
-    margin-top: 2px;
-}
-
-/* Section headers */
-.section-head {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: #2d8cf0;
-    border-bottom: 1px solid #1e2d45;
-    padding-bottom: 0.4rem;
-    margin-bottom: 0.75rem;
-    margin-top: 1.25rem;
+    margin-bottom: 0.25rem;
 }
-
-/* Override streamlit default colors */
-.stButton > button {
-    background: #0d1b2a !important;
-    color: #2d8cf0 !important;
-    border: 1px solid #2d8cf0 !important;
-    border-radius: 2px !important;
-    font-family: 'IBM Plex Mono', monospace !important;
-    font-size: 0.8rem !important;
-    letter-spacing: 0.05em;
-}
-.stButton > button:hover {
-    background: #2d8cf020 !important;
-}
-.stTextInput input, .stTextArea textarea, .stSelectbox select {
-    background: #0d1b2a !important;
-    color: #c8dff0 !important;
-    border: 1px solid #1e2d45 !important;
-    border-radius: 2px !important;
-    font-family: 'IBM Plex Mono', monospace !important;
-}
-.stSelectbox > div > div {
-    background: #0d1b2a !important;
-    color: #c8dff0 !important;
-    border: 1px solid #1e2d45 !important;
-}
-label {
-    color: #6a8fad !important;
-    font-size: 0.78rem !important;
-    font-family: 'IBM Plex Mono', monospace !important;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-}
-.stCheckbox label { text-transform: none !important; }
 </style>
+""", unsafe_allow_html=True)
 
-“””, unsafe_allow_html=True)
-
-# ── Session state init ─────────────────────────────────────────────────────────
+# — Session State Init ————————————————————————————————————————
 
 def init_state():
-if “issues” not in st.session_state:
-st.session_state.issues = [
-{
-“id”: str(uuid.uuid4())[:8],
-“mrn”: “MRN-00412”,
-“patient”: “J. Hartwell”,
-“unit”: “MICU”,
-“bed”: “4B”,
-“priority”: “Urgent”,
-“category”: “Renal Dosing”,
-“description”: “Vancomycin trough pending — levels ordered but not yet resulted. Dose due at 2100. Hold until AUC reviewed.”,
-“pharmacist”: “Chen, M.”,
-“status”: “Pending”,
-“created”: “14:32”,
-“tags”: [“Vancomycin”, “AKI”, “Hold”],
-“followup_required”: True,
-},
-{
-“id”: str(uuid.uuid4())[:8],
-“mrn”: “MRN-00289”,
-“patient”: “R. Okonkwo”,
-“unit”: “CCU”,
-“bed”: “2A”,
-“priority”: “Urgent”,
-“category”: “Drug Interaction”,
-“description”: “Patient on warfarin (INR 3.1) — fluconazole ordered for oral thrush. Significant interaction. Recommend dose reduction + daily INR monitoring. Awaiting MD callback.”,
-“pharmacist”: “Torres, L.”,
-“status”: “Awaiting MD”,
-“created”: “15:10”,
-“tags”: [“Warfarin”, “DDI”, “Callback”],
-“followup_required”: True,
-},
-{
-“id”: str(uuid.uuid4())[:8],
-“mrn”: “MRN-00551”,
-“patient”: “M. Szabo”,
-“unit”: “SICU”,
-“bed”: “7C”,
-“priority”: “Watch”,
-“category”: “IV Shortage”,
-“description”: “NS 1L bags on allocation. Patient requires 125 mL/hr maintenance. Switched to 500 mL bags Q4H per shortage protocol. Nursing aware.”,
-“pharmacist”: “Patel, A.”,
-“status”: “Monitoring”,
-“created”: “13:45”,
-“tags”: [“NS Shortage”, “IV Fluid”, “Protocol”],
-“followup_required”: False,
-},
-{
-“id”: str(uuid.uuid4())[:8],
-“mrn”: “MRN-00374”,
-“patient”: “D. Beaumont”,
-“unit”: “Neuro ICU”,
-“bed”: “1D”,
-“priority”: “Stable”,
-“category”: “Anticoagulation”,
-“description”: “Heparin drip titrated to PTT 80–100. Last PTT 94 at 1600. Next check at 2200. Stable on current rate of 1150 units/hr.”,
-“pharmacist”: “Williams, R.”,
-“status”: “Resolved”,
-“created”: “11:20”,
-“tags”: [“Heparin”, “PTT”, “DVT-Tx”],
-“followup_required”: False,
-},
-]
-if “notes” not in st.session_state:
-st.session_state.notes = [
-{“time”: “15:55”, “author”: “Chen, M.”, “text”: “Pharmacy dept fridge #2 temp alarm resolved — biomedical confirmed. All refrigerated products verified stable.”},
-{“time”: “14:00”, “author”: “Torres, L.”, “text”: “Aminoglycoside dosing service: two new consults in ED, both dosed and monitored. Levels scheduled.”},
-{“time”: “13:30”, “author”: “Patel, A.”, “text”: “Oncology floor: 5-FU infusion completed without incident. Waste documented and disposed. Hazardous waste log updated.”},
-]
-if “current_pharmacist” not in st.session_state:
-st.session_state.current_pharmacist = “Williams, R.”
-if “shift” not in st.session_state:
-st.session_state.shift = “Day (07:00–19:00)”
+    if "issues" not in st.session_state:
+        st.session_state.issues = [
+            {
+                "id": str(uuid.uuid4()),
+                "mrn": "MRN-004821",
+                "name": "J. Whitfield",
+                "unit": "MICU",
+                "bed": "12B",
+                "category": "Anticoagulation",
+                "priority": "Urgent",
+                "summary": "Heparin drip — anti-Xa level 0.18 (subtherapeutic). MD notified, awaiting order to uptitrate.",
+                "status": "Awaiting MD",
+                "flag_callback": True,
+                "flag_level_pending": True,
+                "ts": "06:42",
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "mrn": "MRN-009137",
+                "name": "R. Okonkwo",
+                "unit": "5 West",
+                "bed": "518",
+                "category": "Drug Interaction",
+                "priority": "Urgent",
+                "summary": "Warfarin + fluconazole started today. INR 2.1 — expect significant elevation. Recommend warfarin hold x2 doses and recheck INR tomorrow.",
+                "status": "Pending",
+                "flag_callback": False,
+                "flag_level_pending": False,
+                "ts": "07:05",
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "mrn": "MRN-002255",
+                "name": "T. Nguyen",
+                "unit": "6 East",
+                "bed": "604",
+                "category": "Renal Dosing",
+                "priority": "Watch",
+                "summary": "Vancomycin AUC/MIC monitoring — trough 22.4 (high). Dose held. Renal dosing per pharmacy protocol. Next level at 1400.",
+                "status": "Monitoring",
+                "flag_callback": False,
+                "flag_level_pending": True,
+                "ts": "05:30",
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "mrn": "MRN-007744",
+                "name": "M. Delgado",
+                "unit": "CVICU",
+                "bed": "3A",
+                "category": "IV Shortage",
+                "priority": "Watch",
+                "summary": "NS 0.9% bags on allocation — switched to LR per shortage protocol. Attending aware. Watch for any CI to LR.",
+                "status": "Monitoring",
+                "flag_callback": False,
+                "flag_level_pending": False,
+                "ts": "06:15",
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "mrn": "MRN-001190",
+                "name": "S. Patel",
+                "unit": "7 North",
+                "bed": "714",
+                "category": "High-Alert Med",
+                "priority": "Stable",
+                "summary": "Insulin infusion transitioning to SQ regimen. Endocrine consulted. Basal dose confirmed. No further pharmacy action needed.",
+                "status": "Resolved",
+                "flag_callback": False,
+                "flag_level_pending": False,
+                "ts": "04:50",
+            },
+        ]
+    if "shift_notes" not in st.session_state:
+        st.session_state.shift_notes = [
+            {
+                "id": str(uuid.uuid4()),
+                "ts": "06:00",
+                "author": "Night RPh",
+                "note": "NS 0.9% 1L bags limited to 2 per patient per shift. Use LR as substitute per shortage memo. PYXIS cabinet B3 restocked.",
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "ts": "05:15",
+                "author": "Night RPh",
+                "note": "IV room down 1 tech until 0900. Stat IV requests may have 20-min delay. Notify charge nurse on 5W and 6E.",
+            },
+        ]
+    if "shift_start" not in st.session_state:
+        st.session_state.shift_start = datetime.now().strftime("%Y-%m-%d %H:%M")
 
 init_state()
 
-# ── Sidebar ────────────────────────────────────────────────────────────────────
+# — Sidebar ————————————————————————————————————————————————
 
 with st.sidebar:
-st.markdown(”### 💊 RxHandoff”)
-st.markdown(”—”)
-st.markdown(”**Pharmacist on Duty**”)
-pharmacist = st.text_input(“Name”, value=st.session_state.current_pharmacist, label_visibility=“collapsed”)
-st.session_state.current_pharmacist = pharmacist
+    st.markdown('<div class="shift-header">RxHandoff</div>', unsafe_allow_html=True)
+    st.markdown("## 💊 Pharmacy")
+    st.markdown("**Shift started:** " + st.session_state.shift_start)
+    st.divider()
 
-```
-st.markdown("**Shift**")
-shift = st.selectbox("Shift", ["Day (07:00–19:00)", "Night (19:00–07:00)", "Mid (11:00–23:00)"], 
-                      index=0, label_visibility="collapsed")
-st.session_state.shift = shift
-
-st.markdown("---")
-page = st.radio("Navigation", ["📋  Handoff Board", "➕  Log Issue", "📝  Shift Notes", "📊  Shift Summary"])
-st.markdown("---")
-
-# Quick stats in sidebar
-issues = st.session_state.issues
-urgent_count = sum(1 for i in issues if i["priority"] == "Urgent")
-pending_count = sum(1 for i in issues if i["status"] in ["Pending", "Awaiting MD"])
-st.markdown(f"""
-<div style="font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:#4a7fa0;">
-OPEN ISSUES<br>
-<span style="font-size:1.5rem;color:#e8f4ff;font-weight:600;">{len(issues)}</span>
-<br><br>
-URGENT<br>
-<span style="font-size:1.5rem;color:#ff4d4d;font-weight:600;">{urgent_count}</span>
-<br><br>
-PENDING FOLLOWUP<br>
-<span style="font-size:1.5rem;color:#ffb020;font-weight:600;">{pending_count}</span>
-</div>
-""", unsafe_allow_html=True)
-```
-
-# ── Header ─────────────────────────────────────────────────────────────────────
-
-now = datetime.now()
-st.markdown(f”””
-
-<div class="shift-header">
-  <div>
-    <p class="shift-title">RxHandoff Dashboard</p>
-    <p class="shift-meta">Acute Care Pharmacy · {st.session_state.shift} · {now.strftime('%A, %B %d %Y')}</p>
-  </div>
-  <div style="text-align:right">
-    <p style="font-family:'IBM Plex Mono',monospace;font-size:1.1rem;color:#e8f4ff;margin:0;">{now.strftime('%H:%M')}</p>
-    <p class="shift-meta">{st.session_state.current_pharmacist}</p>
-  </div>
-</div>
-""", unsafe_allow_html=True)
-
-# ─────────────────────────────────────────────────────────────────────────────
-
-# PAGE: HANDOFF BOARD
-
-# ─────────────────────────────────────────────────────────────────────────────
-
-if “Handoff Board” in page:
-# Metric row
-issues = st.session_state.issues
-total = len(issues)
-urgent = sum(1 for i in issues if i[“priority”] == “Urgent”)
-watch = sum(1 for i in issues if i[“priority”] == “Watch”)
-resolved = sum(1 for i in issues if i[“status”] == “Resolved”)
-
-```
-c1, c2, c3, c4 = st.columns(4)
-with c1:
-    st.markdown(f"""<div class="metric-tile">
-        <div class="metric-number">{total}</div>
-        <div class="metric-label">Total Issues</div>
-    </div>""", unsafe_allow_html=True)
-with c2:
-    st.markdown(f"""<div class="metric-tile">
-        <div class="metric-number" style="color:#ff4d4d">{urgent}</div>
-        <div class="metric-label">Urgent</div>
-        <div class="metric-sub">Require action now</div>
-    </div>""", unsafe_allow_html=True)
-with c3:
-    st.markdown(f"""<div class="metric-tile">
-        <div class="metric-number" style="color:#ffb020">{watch}</div>
-        <div class="metric-label">Watch</div>
-    </div>""", unsafe_allow_html=True)
-with c4:
-    st.markdown(f"""<div class="metric-tile">
-        <div class="metric-number" style="color:#00c47d">{resolved}</div>
-        <div class="metric-label">Resolved</div>
-    </div>""", unsafe_allow_html=True)
-
-# Filter bar
-st.markdown('<p class="section-head">Active Issues</p>', unsafe_allow_html=True)
-f1, f2, f3 = st.columns([2, 2, 2])
-with f1:
-    filter_priority = st.selectbox("Priority", ["All", "Urgent", "Watch", "Stable"])
-with f2:
-    filter_status = st.selectbox("Status", ["All", "Pending", "Awaiting MD", "Monitoring", "Resolved"])
-with f3:
-    filter_unit = st.selectbox("Unit", ["All"] + list(set(i["unit"] for i in issues)))
-
-# Display issues
-priority_map = {"Urgent": "urgent", "Watch": "warning", "Stable": "stable"}
-tag_color_map = {
-    "Vancomycin": "tag-red", "AKI": "tag-amber", "Hold": "tag-red",
-    "Warfarin": "tag-amber", "DDI": "tag-red", "Callback": "tag-amber",
-    "NS Shortage": "tag-amber", "IV Fluid": "tag-blue", "Protocol": "tag-blue",
-    "Heparin": "tag-green", "PTT": "tag-green", "DVT-Tx": "tag-green",
-}
-
-shown = 0
-for issue in issues:
-    if filter_priority != "All" and issue["priority"] != filter_priority:
-        continue
-    if filter_status != "All" and issue["status"] != filter_status:
-        continue
-    if filter_unit != "All" and issue["unit"] != filter_unit:
-        continue
-    shown += 1
-
-    card_class = priority_map.get(issue["priority"], "info")
-    status_color = {"Pending": "#ffb020", "Awaiting MD": "#ff4d4d", 
-                    "Monitoring": "#2d8cf0", "Resolved": "#00c47d"}.get(issue["status"], "#6a8fad")
-
-    tags_html = "".join(
-        f'<span class="tag {tag_color_map.get(t, "tag-gray")}">{t}</span>'
-        for t in issue.get("tags", [])
+    page = st.radio(
+        "Navigate",
+        ["Handoff Board", "Log Issue", "Shift Notes", "Shift Summary"],
+        label_visibility="collapsed",
     )
+    st.divider()
 
-    col_card, col_actions = st.columns([5, 1])
-    with col_card:
-        st.markdown(f"""
-        <div class="rx-card {card_class}">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.4rem;">
-            <div>
-              <span style="font-family:'IBM Plex Mono',monospace;font-size:0.85rem;font-weight:600;color:#e8f4ff;">
-                {issue['patient']}
-              </span>
-              <span style="font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:#4a7fa0;margin-left:10px;">
-                {issue['mrn']} · {issue['unit']} {issue['bed']}
-              </span>
-            </div>
-            <div style="text-align:right;">
-              <span style="font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:{status_color};border:1px solid {status_color}40;padding:1px 7px;border-radius:2px;">
-                {issue['status']}
-              </span>
-            </div>
-          </div>
-          <div style="font-size:0.7rem;color:#4a7fa0;font-family:'IBM Plex Mono',monospace;margin-bottom:0.4rem;">
-            {issue['category']} · Logged {issue['created']} by {issue['pharmacist']}
-          </div>
-          <div style="font-size:0.85rem;color:#a8c4e0;line-height:1.5;margin-bottom:0.5rem;">
-            {issue['description']}
-          </div>
-          <div>{tags_html}</div>
-        </div>
-        """, unsafe_allow_html=True)
+    units = sorted(set(i["unit"] for i in st.session_state.issues))
+    unit_filter = st.multiselect("Filter by Unit", units, default=units)
 
-    with col_actions:
-        st.markdown("<div style='margin-top:0.6rem'/>", unsafe_allow_html=True)
-        new_status = st.selectbox(
-            f"Status##{issue['id']}",
-            ["Pending", "Awaiting MD", "Monitoring", "Resolved"],
-            index=["Pending", "Awaiting MD", "Monitoring", "Resolved"].index(issue["status"]),
-            label_visibility="collapsed",
-            key=f"sel_{issue['id']}"
-        )
-        if new_status != issue["status"]:
-            issue["status"] = new_status
-            st.rerun()
-        if st.button("Remove", key=f"del_{issue['id']}"):
-            st.session_state.issues = [i for i in st.session_state.issues if i["id"] != issue["id"]]
-            st.rerun()
+    priorities = ["Urgent", "Watch", "Stable"]
+    priority_filter = st.multiselect("Filter by Priority", priorities, default=priorities)
 
-if shown == 0:
-    st.markdown('<div class="rx-card info" style="text-align:center;color:#4a7fa0;">No issues match current filters.</div>', unsafe_allow_html=True)
-```
+    st.divider()
+    open_count = sum(1 for i in st.session_state.issues if i["status"] != "Resolved")
+    urgent_count = sum(1 for i in st.session_state.issues if i["priority"] == "Urgent" and i["status"] != "Resolved")
+    st.metric("Open Issues", open_count)
+    st.metric("Urgent", urgent_count)
 
-# ─────────────────────────────────────────────────────────────────────────────
+# — Helper ————————————————————————————————————————————————————
 
-# PAGE: LOG ISSUE
+PRIORITY_COLOR = {"Urgent": "urgent", "Watch": "watch", "Stable": "stable"}
+STATUS_OPTIONS = ["Pending", "Awaiting MD", "Monitoring", "Resolved"]
+CATEGORIES = [
+    "Renal Dosing", "Drug Interaction", "High-Alert Med",
+    "Anticoagulation", "IV Shortage", "TPN/Nutrition",
+    "Antimicrobial Stewardship", "Pain/Sedation", "Other",
+]
 
-# ─────────────────────────────────────────────────────────────────────────────
+def filtered_issues():
+    return [
+        i for i in st.session_state.issues
+        if i["unit"] in unit_filter and i["priority"] in priority_filter
+    ]
 
-elif “Log Issue” in page:
-st.markdown(’<p class="section-head">New Handoff Issue</p>’, unsafe_allow_html=True)
+# — Page: Handoff Board ———————————————————————————————————————
 
-```
-c1, c2 = st.columns(2)
-with c1:
-    mrn = st.text_input("MRN", placeholder="MRN-00000")
-    patient = st.text_input("Patient Name", placeholder="Last, First")
-    unit = st.selectbox("Unit", ["MICU", "CCU", "SICU", "Neuro ICU", "Step-Down", "ED", "Oncology", "Transplant", "General Med"])
-    bed = st.text_input("Bed", placeholder="e.g. 4B")
-with c2:
-    priority = st.selectbox("Priority", ["Urgent", "Watch", "Stable"])
-    category = st.selectbox("Category", [
-        "Renal Dosing", "Drug Interaction", "IV Shortage", "Anticoagulation",
-        "High-Alert Medication", "Pending Labs", "Formulary", "Allergy", "TPN/Nutrition", "Other"
-    ])
-    status = st.selectbox("Status", ["Pending", "Awaiting MD", "Monitoring"])
-    tags_input = st.text_input("Tags (comma-separated)", placeholder="Vancomycin, AKI, Hold")
+if page == "Handoff Board":
+    st.markdown("## 📋 Handoff Board")
+    col_a, col_b = st.columns([3, 1])
+    with col_b:
+        show_resolved = st.toggle("Show Resolved", value=False)
 
-description = st.text_area("Issue Description / Action Required", height=120, 
-                            placeholder="Describe the clinical situation, what has been done, and what the incoming pharmacist needs to do...")
-followup = st.checkbox("Requires Follow-Up by Next Shift")
+    issues = filtered_issues()
+    if not show_resolved:
+        issues = [i for i in issues if i["status"] != "Resolved"]
 
-if st.button("→ Log Issue"):
-    if not mrn or not patient or not description:
-        st.error("MRN, patient name, and description are required.")
+    # Sort: Urgent → Watch → Stable
+    priority_order = {"Urgent": 0, "Watch": 1, "Stable": 2}
+    issues = sorted(issues, key=lambda x: priority_order.get(x["priority"], 3))
+
+    if not issues:
+        st.info("No open issues matching current filters.")
     else:
-        new_issue = {
-            "id": str(uuid.uuid4())[:8],
-            "mrn": mrn,
-            "patient": patient,
-            "unit": unit,
-            "bed": bed,
-            "priority": priority,
-            "category": category,
-            "description": description,
-            "pharmacist": st.session_state.current_pharmacist,
-            "status": status,
-            "created": datetime.now().strftime("%H:%M"),
-            "tags": [t.strip() for t in tags_input.split(",") if t.strip()],
-            "followup_required": followup,
-        }
-        st.session_state.issues.insert(0, new_issue)
-        st.success(f"Issue logged for {patient} ({mrn})")
-        st.balloons()
-```
+        for issue in issues:
+            css_class = PRIORITY_COLOR.get(issue["priority"], "stable")
+            flags = ""
+            if issue.get("flag_callback"):
+                flags += '<span class="tag">📞 Callback</span>'
+            if issue.get("flag_level_pending"):
+                flags += '<span class="tag">🧪 Level Pending</span>'
 
-# ─────────────────────────────────────────────────────────────────────────────
+            st.markdown(f"""
+<div class="rx-card {css_class}">
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <span style="font-family:\'IBM Plex Mono\',monospace;font-size:0.8rem;color:#8b949e;">{issue['ts']} · {issue['mrn']} · {issue['unit']} {issue['bed']}</span>
+    <span class="tag">{issue['priority']}</span>
+  </div>
+  <div style="font-weight:600;margin:6px 0 4px;">{issue['name']}</div>
+  <div style="font-size:0.88rem;color:#c9d1d9;margin-bottom:8px;">{issue['summary']}</div>
+  <span class="tag">{issue['category']}</span>
+  {flags}
+</div>
+""", unsafe_allow_html=True)
 
-# PAGE: SHIFT NOTES
+            with st.expander("Update status", expanded=False):
+                new_status = st.selectbox(
+                    "Status",
+                    STATUS_OPTIONS,
+                    index=STATUS_OPTIONS.index(issue["status"]),
+                    key="status_" + issue["id"],
+                )
+                if st.button("Save", key="save_" + issue["id"]):
+                    for i in st.session_state.issues:
+                        if i["id"] == issue["id"]:
+                            i["status"] = new_status
+                    st.rerun()
 
-# ─────────────────────────────────────────────────────────────────────────────
+# — Page: Log Issue ———————————————————————————————————————————
 
-elif “Shift Notes” in page:
-st.markdown(’<p class="section-head">General Shift Notes</p>’, unsafe_allow_html=True)
-st.markdown(’<div style="font-size:0.78rem;color:#4a7fa0;font-family:IBM Plex Mono,monospace;margin-bottom:1rem;">Use for department-wide updates, shortage alerts, staffing notes, and information not tied to a specific patient.</div>’, unsafe_allow_html=True)
+elif page == "Log Issue":
+    st.markdown("## ➕ Log New Issue")
+    with st.form("log_form", clear_on_submit=True):
+        c1, c2, c3 = st.columns(3)
+        mrn = c1.text_input("MRN", placeholder="MRN-XXXXXX")
+        name = c2.text_input("Patient Name", placeholder="Last, First")
+        unit = c3.text_input("Unit", placeholder="e.g. MICU")
 
-```
-new_note = st.text_area("New note", height=80, placeholder="Type a shift note...")
-if st.button("Post Note"):
-    if new_note.strip():
-        st.session_state.notes.insert(0, {
-            "time": datetime.now().strftime("%H:%M"),
-            "author": st.session_state.current_pharmacist,
-            "text": new_note.strip()
-        })
-        st.success("Note posted.")
-        st.rerun()
+        c4, c5, c6 = st.columns(3)
+        bed = c4.text_input("Bed", placeholder="e.g. 12B")
+        category = c5.selectbox("Category", CATEGORIES)
+        priority = c6.selectbox("Priority", ["Urgent", "Watch", "Stable"])
 
-st.markdown('<p class="section-head">Note History</p>', unsafe_allow_html=True)
-for note in st.session_state.notes:
-    st.markdown(f"""
-    <div class="rx-card info">
-      <div style="font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:#2d8cf0;margin-bottom:0.3rem;">
-        {note['time']} · {note['author']}
-      </div>
-      <div style="font-size:0.85rem;color:#a8c4e0;">{note['text']}</div>
-    </div>
-    """, unsafe_allow_html=True)
-```
+        summary = st.text_area("Clinical Summary", placeholder="Describe the issue, relevant labs, actions taken, and what the oncoming pharmacist needs to do.", height=120)
 
-# ─────────────────────────────────────────────────────────────────────────────
+        c7, c8 = st.columns(2)
+        flag_callback = c7.checkbox("MD Callback Needed")
+        flag_level_pending = c8.checkbox("Lab Level Pending")
 
-# PAGE: SHIFT SUMMARY
+        submitted = st.form_submit_button("Log Issue", use_container_width=True)
+        if submitted:
+            if mrn and name and summary:
+                new_issue = {
+                    "id": str(uuid.uuid4()),
+                    "mrn": mrn,
+                    "name": name,
+                    "unit": unit,
+                    "bed": bed,
+                    "category": category,
+                    "priority": priority,
+                    "summary": summary,
+                    "status": "Pending",
+                    "flag_callback": flag_callback,
+                    "flag_level_pending": flag_level_pending,
+                    "ts": datetime.now().strftime("%H:%M"),
+                }
+                st.session_state.issues.insert(0, new_issue)
+                st.success("Issue logged successfully.")
+            else:
+                st.error("MRN, patient name, and summary are required.")
 
-# ─────────────────────────────────────────────────────────────────────────────
+# — Page: Shift Notes ————————————————————————————————————————
 
-elif “Shift Summary” in page:
-st.markdown(’<p class="section-head">End-of-Shift Summary</p>’, unsafe_allow_html=True)
-st.markdown(’<div style="font-size:0.78rem;color:#4a7fa0;font-family:IBM Plex Mono,monospace;margin-bottom:1rem;">Auto-generated handoff report. Review, edit, and share with the incoming pharmacist.</div>’, unsafe_allow_html=True)
+elif page == "Shift Notes":
+    st.markdown("## 📝 Shift Notes")
+    st.caption("Department-wide notes: shortages, staffing, equipment — not tied to a specific patient.")
 
-```
-issues = st.session_state.issues
-urgent_issues = [i for i in issues if i["priority"] == "Urgent"]
-watch_issues = [i for i in issues if i["priority"] == "Watch"]
-followup_issues = [i for i in issues if i.get("followup_required")]
+    with st.form("note_form", clear_on_submit=True):
+        author = st.text_input("Your Name / Role", placeholder="e.g. Night RPh")
+        note_text = st.text_area("Note", placeholder="Enter shift note...", height=100)
+        if st.form_submit_button("Add Note", use_container_width=True):
+            if note_text:
+                st.session_state.shift_notes.insert(0, {
+                    "id": str(uuid.uuid4()),
+                    "ts": datetime.now().strftime("%H:%M"),
+                    "author": author or "Anon",
+                    "note": note_text,
+                })
+                st.success("Note added.")
 
-summary_lines = [
-    f"SHIFT HANDOFF REPORT — {st.session_state.shift}",
-    f"Date: {date.today().strftime('%B %d, %Y')}",
-    f"Prepared by: {st.session_state.current_pharmacist}",
-    f"Generated: {datetime.now().strftime('%H:%M')}",
-    "",
-    "═══════════════════════════════════════",
-    "URGENT ISSUES",
-    "═══════════════════════════════════════",
-]
-for i in urgent_issues:
-    summary_lines += [
-        f"▶ {i['patient']} ({i['mrn']}) — {i['unit']} {i['bed']}",
-        f"  Category: {i['category']} | Status: {i['status']}",
-        f"  {i['description']}",
-        f"  Tags: {', '.join(i.get('tags', []))}",
-        "",
-    ]
-if not urgent_issues:
-    summary_lines.append("  No urgent issues.\n")
+    st.divider()
+    for n in st.session_state.shift_notes:
+        st.markdown(f"""
+<div class="rx-card stable">
+  <div style="font-family:\'IBM Plex Mono\',monospace;font-size:0.75rem;color:#8b949e;">{n['ts']} · {n['author']}</div>
+  <div style="margin-top:6px;font-size:0.9rem;">{n['note']}</div>
+</div>
+""", unsafe_allow_html=True)
 
-summary_lines += [
-    "═══════════════════════════════════════",
-    "WATCH ITEMS",
-    "═══════════════════════════════════════",
-]
-for i in watch_issues:
-    summary_lines += [
-        f"◈ {i['patient']} ({i['mrn']}) — {i['unit']} {i['bed']}",
-        f"  {i['description']}",
-        "",
-    ]
-if not watch_issues:
-    summary_lines.append("  No watch items.\n")
+# — Page: Shift Summary ——————————————————————————————————————
 
-summary_lines += [
-    "═══════════════════════════════════════",
-    "REQUIRES FOLLOWUP NEXT SHIFT",
-    "═══════════════════════════════════════",
-]
-for i in followup_issues:
-    summary_lines.append(f"  • {i['patient']} — {i['category']}")
-if not followup_issues:
-    summary_lines.append("  None flagged.")
+elif page == "Shift Summary":
+    st.markdown("## 📊 Shift Summary")
+    issues_all = st.session_state.issues
+    total = len(issues_all)
+    resolved = sum(1 for i in issues_all if i["status"] == "Resolved")
+    open_issues = total - resolved
 
-summary_lines += [
-    "",
-    "═══════════════════════════════════════",
-    "SHIFT NOTES",
-    "═══════════════════════════════════════",
-]
-for note in st.session_state.notes:
-    summary_lines.append(f"  [{note['time']}] {note['author']}: {note['text']}")
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Total Issues", total)
+    col2.metric("Open", open_issues)
+    col3.metric("Resolved", resolved)
+    col4.metric("Urgent Open", sum(1 for i in issues_all if i["priority"] == "Urgent" and i["status"] != "Resolved"))
 
-summary_text = "\n".join(summary_lines)
+    st.divider()
+    st.markdown("### Open Issues by Priority")
+    for priority in ["Urgent", "Watch", "Stable"]:
+        group = [i for i in issues_all if i["priority"] == priority and i["status"] != "Resolved"]
+        if group:
+            st.markdown(f"**{priority}** ({len(group)})")
+            for i in group:
+                st.markdown(f"- `{i['mrn']}` {i['name']} — {i['unit']} {i['bed']} — {i['category']} — *{i['status']}*")
 
-st.text_area("Handoff Report", value=summary_text, height=500, key="summary_display")
+    st.divider()
+    st.markdown("### Shift Notes")
+    for n in st.session_state.shift_notes:
+        st.markdown(f"- `{n['ts']}` **{n['author']}**: {n['note']}")
 
-col1, col2 = st.columns(2)
-with col1:
-    st.download_button(
-        "⬇ Download Handoff (.txt)",
-        data=summary_text,
-        file_name=f"rxhandoff_{date.today().isoformat()}_{st.session_state.shift[:3].lower()}.txt",
-        mime="text/plain"
-    )
-with col2:
-    summary_json = json.dumps({
-        "date": str(date.today()),
-        "shift": st.session_state.shift,
-        "prepared_by": st.session_state.current_pharmacist,
-        "issues": issues,
-        "notes": st.session_state.notes,
-    }, indent=2)
-    st.download_button(
-        "⬇ Download JSON (EHR import)",
-        data=summary_json,
-        file_name=f"rxhandoff_{date.today().isoformat()}.json",
-        mime="application/json"
-    )
-```
+    st.divider()
+    summary_data = {
+        "shift_start": st.session_state.shift_start,
+        "generated_at": datetime.now().isoformat(),
+        "open_issues": [i for i in issues_all if i["status"] != "Resolved"],
+        "resolved_issues": [i for i in issues_all if i["status"] == "Resolved"],
+        "shift_notes": st.session_state.shift_notes,
+    }
+
+    col_a, col_b = st.columns(2)
+    with col_a:
+        txt_lines = [
+            "RXHANDOFF — SHIFT SUMMARY",
+            "=" * 40,
+            "Shift Start: " + st.session_state.shift_start,
+            "Generated:   " + datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "",
+            "OPEN ISSUES",
+            "-" * 40,
+        ]
+        for i in [x for x in issues_all if x["status"] != "Resolved"]:
+            txt_lines.append(f"[{i['priority'].upper()}] {i['mrn']} {i['name']} ({i['unit']} {i['bed']})")
+            txt_lines.append(f"  Category: {i['category']}")
+            txt_lines.append(f"  Status:   {i['status']}")
+            txt_lines.append(f"  Summary:  {i['summary']}")
+            txt_lines.append("")
+        txt_lines += [
+            "SHIFT NOTES",
+            "-" * 40,
+        ]
+        for n in st.session_state.shift_notes:
+            txt_lines.append(f"[{n['ts']}] {n['author']}: {n['note']}")
+
+        txt_out = "\n".join(txt_lines)
+        st.download_button(
+            "Download .txt Handoff",
+            data=txt_out,
+            file_name="rxhandoff_" + date.today().isoformat() + ".txt",
+            mime="text/plain",
+            use_container_width=True,
+        )
+    with col_b:
+        st.download_button(
+            "Download .json (EHR Import)",
+            data=json.dumps(summary_data, indent=2),
+            file_name="rxhandoff_" + date.today().isoformat() + ".json",
+            mime="application/json",
+            use_container_width=True,
+        )
